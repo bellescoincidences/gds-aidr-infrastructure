@@ -1,3 +1,6 @@
+
+
+```
 govsynth-infra-core-tf/
 ├── modules/              # Reusable Gov-standard components
 ├── environments/
@@ -7,3 +10,5 @@ govsynth-infra-core-tf/
 │   └── prod/             # Prod account (mirrored config)
 │       ├── main.tf       
 │       └── variables.tf
+
+```
