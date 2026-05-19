@@ -44,6 +44,8 @@ The `gds-aidr-infrastructure` repository is a monorepo that combines cloud servi
 ---
 ## IAM Cross-Account Strategy
 
+The full version of this document can be found here [infrastructure/terraform/modules/iam-cross-account-strategy.md](./infrastructure/terraform/modules/iam-cross-account-strategy.md)
+
 The `gds-aidr-infrastructure` project uses a centralised identity model where
 all human users authenticate in the `gds-users` AWS organisation root account
 and assume roles into the three target accounts (dev, staging, prod).
@@ -54,11 +56,11 @@ credentials are stored anywhere.
 
 ## Role Descriptions
 
-**admin**: Full `AdministratorAccess`. Only in dev. For initial setup and
-break-glass scenarios. Requires MFA.
+All roles require MFA
 
-**readonly**: AWS-managed `ReadOnlyAccess`. For viewing resources, debugging,
-and dashboarding. Requires MFA.
+**admin**: Full `AdministratorAccess`. 
+
+**readonly**: AWS-managed `ReadOnlyAccess`. 
 
 **security-audit**: AWS-managed `SecurityAudit`. Used by the GDS Cyber Security
 team and automated scanning tools. Follows the pattern from
@@ -68,9 +70,7 @@ team and automated scanning tools. Follows the pattern from
 and GitHub Actions OIDC (CI/CD). This is the role that plans and applies
 infrastructure changes.
 
-
-
-
+## User retention policies
 
 For new and existing user retention policies, see [docs/users/user_management.md](docs/users/user_management.md)
 
