@@ -8,7 +8,5 @@ infrastructure/terraform/bootstrap/README.md
 infrastructure/terraform/bootstrap/README.pdf
 
 # log files - DO MOT PUSH TO PUBLIC REPO
-logs/
+**logs/
 **.log
-
-# 
