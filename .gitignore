@@ -1,5 +1,14 @@
+# .DS_Store
 .DS_Store
+
+# .local dev folders/files
 .development
 .archive
+infrastructure/terraform/bootstrap/README.md
+infrastructure/terraform/bootstrap/README.pdf
+
+# log files - DO MOT PUSH TO PUBLIC REPO
 .logs/
 **.log
+
+# 
