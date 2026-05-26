@@ -18,11 +18,11 @@ terraform {
 
   # STATE BUCKET
   backend "s3" {
-    bucket         = "gds-aidr-terraform-state-production"
-    key            = "production-iam/terraform.tfstate"
-    region         = "eu-west-2"
-    encrypt        = true
-    dynamodb_table = "gds-aidr-terraform-locks-production"
+    bucket       = "gds-aidr-terraform-state-production"
+    key          = "production-iam/terraform.tfstate"
+    region       = "eu-west-2"
+    encrypt      = true
+    use_lockfile = true
   }
 }
 
