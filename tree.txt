@@ -1,0 +1,36 @@
+.gds-aidr-platform
+├── .editorconfig
+├── .eslintrc
+├── .github
+│   ├── CODEOWNERS
+│   ├── ISSUE_TEMPLATE
+│   │   ├── bug_report.md
+│   │   └── feature_request.md
+│   └── workflows
+├── .gitignore
+├── .prettierrc
+├── CONTRIBUTING.md
+├── LICENSE
+├── README.md
+├── infrastructure
+│   └── terraform
+│       ├── bootstrap
+│       │   ├── trust-policy-development.json
+│       │   └── trust-policy-staging.json
+│       ├── environments
+│       │   └── production-iam
+│       │       ├── .terraform.lock.hcl
+│       │       ├── main.tf
+│       │       ├── outputs.tf
+│       │       ├── terraform.tfvars
+│       │       ├── terraform.tfvars.example
+│       │       └── variables.tf
+│       └── modules
+│           └── iam-centralised
+│               ├── main.tf
+│               ├── outputs.tf
+│               └── variables.tf
+├── package.json
+└── tree.txt
+
+11 directories, 23 files
