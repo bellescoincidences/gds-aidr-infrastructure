@@ -15,7 +15,6 @@
 
 ## Get access to the AIDR platform
 
-
 **Some mandatory disclaimers**
 * All users, with the exception of developer/engineer and admin users have access to the AIDR development environment.
 * Developer/engineers and platform admins have access to all three environments. 
