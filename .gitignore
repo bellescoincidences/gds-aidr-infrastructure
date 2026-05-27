@@ -14,3 +14,8 @@ infrastructure/terraform/bootstrap/README.pdf
 # Terrform config files - NEVER COMMIT THESE
 
 .terraform/
+*.tfvars
+!*.tfvars.example
+*.tfstate
+*.tfstate.backup
+
