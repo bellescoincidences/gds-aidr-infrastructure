@@ -1,0 +1,28 @@
+# environments/production-iam/terraform.tfvars.example
+#
+# Copy this file to terraform.tfvars and fill in correct values.
+# DO NOT commit terraform.tfvars — it contains account-specific values.
+# The .gitignore should exclude *.tfvars files.
+
+development_account_id = ""
+staging_account_id     = ""
+production_account_id  = ""
+
+# The gds-users org root account. Replace with correct org account ID.
+gds_users_account_arn = "arn:aws:iam::REPLACE_WITH_GDS_USERS_ACCOUNT_ID:root"
+
+role_prefix = "gds-aidr"
+
+# These are the IAM user ARNs in the gds-users account.
+admin_trusted_arns = [
+  "arn:aws:iam::REPLACE_WITH_GDS_USERS_ACCOUNT_ID:USER1",
+  "arn:aws:iam::REPLACE_WITH_GDS_USERS_ACCOUNT_ID:USER2."
+]
+
+# Lock GitHub Actions OIDC to the main branch of the infrastructure repo.
+# Only merged PRs can trigger terraform apply.
+github_oidc_allowed_subjects = [
+  "repo:alphagov/gds-aidr-infrastructure:ref:refs/heads/main"
+]
+
+max_session_duration = 14400
