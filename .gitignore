@@ -10,3 +10,7 @@ infrastructure/terraform/bootstrap/README.pdf
 # log files - DO MOT PUSH TO PUBLIC REPO
 **logs/
 **.log
+
+# Terrform config files - NEVER COMMIT THESE
+
+.terraform/
