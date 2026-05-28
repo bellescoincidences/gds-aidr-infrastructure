@@ -200,6 +200,15 @@ resource "aws_iam_role" "terraform" {
             "token.actions.githubusercontent.com:sub" = var.github_oidc_allowed_subjects
           }
         }
+      },
+      # Cross-account access from the production Terraform session
+      {
+        Sid    = "AllowCrossAccountAssume"
+        Effect = "Allow"
+        Principal = {
+          AWS = var.terraform_cross_account_arns
+        }
+        Action = "sts:AssumeRole"
       }
     ]
   })
