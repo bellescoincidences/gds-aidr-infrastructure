@@ -5,6 +5,8 @@
 
 **date_updated:*** thurs-28-may-2026
 
+**Description:** Our account strategy is built in conjunction witg GDS Engineering Enablement Cloud Platform Team and Secure by Design processes.
+
 ---
 
 ## Overview
@@ -46,24 +48,46 @@ gds-users (org root, 622626885786)
     └── GitHub OIDC provider
 ```
 
-### How the cross-account assumption works
+## How the cross-account assumption works
+
+### The trust chain
+
+Every action on the AIDR platform traces back to your `gds-users` identity.
+Here is how the chain works when you run Terraform locally:
 
 ```
-(gds-users account)
+User (gds-users account, 622626885786)
   │
-  ├─ aws sts assume-role ──► production: gds-aidr-admin (MFA required)
-  │                             │
-  │                             └─ terraform runs here
-  │                                  │
-  │                                  ├─ provider "aws" { }                    → production resources
-  │                                  ├─ provider "aws" { alias=development }  → development resources
-  │                                  └─ provider "aws" { alias=staging }      → staging resources
+  │  1. You run `aws sts assume-role` with your MFA code.
+  │     AWS checks: does gds-aidr-admin in production trust gds-users? Yes.
+  │     Result: you get temporary credentials for production.
   │
-  ├─ aws sts assume-role ──► development: gds-aidr-readonly (MFA required)
-  │   (for manual debugging)
+  ├─► production: gds-aidr-admin (052997916327)
+  │     │
+  │     │  2. Terraform starts. It reads provider aliases in main.tf.
+  │     │     The development alias says: assume gds-aidr-terraform in dev.
+  │     │     AWS checks: does gds-aidr-terraform in dev trust gds-users? Yes.
+  │     │     (Your session still carries the gds-users origin.)
+  │     │     Result: Terraform can create/modify resources in dev.
+  │     │
+  │     ├─► development: gds-aidr-terraform (444083008220)
+  │     │
+  │     │  3. Same for staging.
+  │     │
+  │     ├─► staging: gds-aidr-terraform (577449503821)
+  │     │
+  │     │  4. Production resources use the default provider (no alias).
+  │     │     No second hop needed — Terraform is already in production.
+  │     │
+  │     └─► production resources (direct, no assume needed)
   │
-  └─ aws sts assume-role ──► staging: gds-aidr-readonly (MFA required)
-      (for manual debugging)
+  │  For manual debugging (not Terraform):
+  │
+  ├─► development: gds-aidr-readonly (444083008220)
+  │     View resources, check CloudWatch, verify deployments.
+  │
+  └─► staging: gds-aidr-readonly (577449503821)
+        Same as above.
 ```
 
 ### Role scopes (planned)
@@ -122,22 +146,6 @@ terraform plan
 terraform apply
 ```
 
-<!--
-COMMENTING OUT BECAUSE ONLY RELEVANT IN FIRST-TIME SETUP
-## Bootstrap
-
-Before running the centralised Terraform for the first time, ADMIN need to
-create minimal trust roles in development and staging so that Terraform
-(running in production) can assume into those accounts.
-
-See `infrastructure/terraform/bootstrap/README.md` for the step-by-step
-instructions.
-
-After the first successful `terraform apply`, the proper `gds-aidr-terraform`
-roles exist in development and staging. Update the provider aliases in
-`main.tf` to use those roles instead of the bootstrap ones, then delete the
-bootstrap roles.-->
-
 ### Security considerations
 
 1. **MFA is mandatory** for all human role assumptions.
@@ -148,21 +156,66 @@ bootstrap roles.-->
 6. **4-hour session max** — limits the window if credentials are compromised.
 
 **Terraform state**
+Each environment stores state in its own S3 bucket with S3-native locking:
 
-Each environment stores state in its own S3 bucket with DynamoDB locking:
 
-| Environment | S3 Bucket | DynamoDB Table |
-|---|---|---|
-| development | `gds-aidr-terraform-state-development` | `gds-aidr-terraform-locks-development` |
-| staging | `gds-aidr-terraform-state-staging` | `gds-aidr-terraform-locks-staging` |
-| production | `gds-aidr-terraform-state-production` | `gds-aidr-terraform-locks-production` |
+| Environment | S3 Bucket |
+|---|---|
+| development | `gds-aidr-terraform-state-development` |
+| staging | `gds-aidr-terraform-state-staging` |
+| production | `gds-aidr-terraform-state-production` |
 
-The S3 backend configuration is commented out in `production-iam/main.tf` —
-uncomment and configure once the state buckets exist.
+State locking uses the `use_lockfile = true` setting (S3-native locking),
+which replaced the older DynamoDB-based approach.
 
-### References
+
+## References
 
 - [alphagov/cyber-security-shared-terraform-modules](https://github.com/alphagov/cyber-security-shared-terraform-modules)
 - [alphagov/govuk-infrastructure](https://github.com/alphagov/govuk-infrastructure)
 - [alphagov/github-oidc-proxy](https://github.com/alphagov/github-oidc-proxy)
 - [GDS Way: AWS account management](https://gds-way.cloudapps.digital/)
+
+## Annex
+
+### Bootstrap (completed)
+
+The bootstrap process has been completed and the bootstrap roles have been
+deleted. This section is kept for historical reference.
+
+Before running the centralised Terraform for the first time, temporary
+`gds-aidr-terraform-bootstrap` roles were created in development and staging.
+These had `IAMFullAccess` only and trusted the production account root, so
+that the first `terraform apply` could create the proper IAM roles.
+
+After the first successful apply, the provider aliases in `main.tf` were
+updated to use `gds-aidr-terraform` instead of `gds-aidr-terraform-bootstrap`,
+and the bootstrap roles were deleted.
+
+## FAQs
+
+* **Why gds-aidr-admin, not bootstrap?**
+
+The `bootstrap` role was a temporary role created before any Terraform-managed
+roles existed. It only had `IAMFullAccess` (not full admin) and its sole
+purpose was to allow the first `terraform apply` to create the proper roles.
+
+Once the proper roles exist, the bootstrap roles are deleted. The
+`gds-aidr-admin` role is the permanent replacement — it has full
+`AdministratorAccess` but is restricted to named IAM users only (you and
+your LM), with MFA required.
+
+* **Why the trust works across accounts**
+
+The `gds-aidr-terraform` roles in development and staging have a trust policy
+that says: "allow anyone from the gds-users account root to assume this role,
+with MFA". When you assume `gds-aidr-admin` in production, your session token
+still records that you originally authenticated from `gds-users`. So when
+Terraform (running as your production session) tries to assume
+`gds-aidr-terraform` in development, AWS sees the gds-users origin and
+allows it.
+
+If someone tried to assume `gds-aidr-terraform` in dev directly from a
+production-only role (one that doesn't trace back to gds-users), it would
+be denied. This is what happened with the old `bootstrap` role — it was
+a production-local role with no gds-users lineage.
