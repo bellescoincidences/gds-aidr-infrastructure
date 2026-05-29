@@ -74,7 +74,7 @@ resource "aws_iam_role_policy_attachment" "admin" {
 # Readonly Role
 # --------------------------------------------------------------------------
 # AWS-managed ReadOnlyAccess. For viewing resources, debugging, verifying
-# deployments in CloudWatch, etc. Your contractor developer would use this for
+# deployments in CloudWatch, etc. Developer roles would use this for
 # staging and production. MFA required.
 
 resource "aws_iam_role" "readonly" {
