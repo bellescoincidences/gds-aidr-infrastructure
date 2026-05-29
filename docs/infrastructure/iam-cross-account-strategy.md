@@ -47,16 +47,16 @@ gds-users
     └── GitHub OIDC provider
 ```
 
-**Proposed layout (pending LM review — see `iam-access-strategy.md`)**
+**Proposed layout**
 ```
 gds-users
 ├── gds-aidr-development
 │   ├── gds-aidr-admin               ← admins only (named ARNs + MFA)
 │   ├── gds-aidr-admin-break-glass   ← emergency writes, 1hr session, SNS alert
 │   ├── gds-aidr-terraform           ← human + GitHub OIDC
-│   ├── gds-aidr-data-scientist      ← full dev access excl. IAM writes
+│   ├── gds-aidr-data-scientist      ← full development  access excl. IAM writes
 │   ├── gds-aidr-data-engineer       ← same as data-scientist + CI/CD trigger
-│   ├── gds-aidr-developer           ← broad dev access excl. IAM writes
+│   ├── gds-aidr-developer           ← broad development  access excl. IAM writes
 │   ├── gds-aidr-analyst             ← Athena, S3 scoped, Glue catalog, QuickSight
 │   ├── gds-aidr-explorer            ← console read-only
 │   ├── gds-aidr-external-xgov       ← resource-scoped, S3 prefix + Athena workgroup
@@ -97,7 +97,7 @@ Every action on the AIDR platform traces back to the `gds-users` identity.
 Here is how the chain works when you run Terraform locally:
 
 ```
-User (gds-users account, 622626885786)
+User (gds-users account)
   │
   │  1. You run `aws sts assume-role` with your MFA code.
   │     AWS checks: does gds-aidr-admin in production trust gds-users? Yes.
@@ -107,7 +107,7 @@ User (gds-users account, 622626885786)
   │     │
   │     │  2. Terraform starts. It reads provider aliases in main.tf.
   │     │     The development alias says: assume gds-aidr-terraform in dev.
-  │     │     AWS checks: does gds-aidr-terraform in dev trust gds-users? Yes.
+  │     │     AWS checks: does gds-aidr-terraform in development  trust gds-users? Yes.
   │     │     (Your session still carries the gds-users origin.)
   │     │     Result: Terraform can create/modify resources in dev.
   │     │
@@ -151,7 +151,7 @@ and GitHub Actions (OIDC). The OIDC subject is locked to
 `repo:alphagov/gds-aidr-infrastructure:ref:refs/heads/main` so only merged
 PRs can trigger applies.
 
-**Proposed roles (pending LM review)**
+**Proposed roles**
 
 **admin-break-glass**: Full `AdministratorAccess` in staging and production.
 Separate from `admin` — exists only for emergency writes to IaC-governed
@@ -159,7 +159,7 @@ environments. 1-hour session duration. Emits a CloudWatch alarm and SNS
 notification to both admins on every assumption. Requires a logged justification
 before use.
 
-**data-scientist**: Full dev access except IAM writes. Heavy compute (Glue,
+**data-scientist**: Full development  access except IAM writes. Heavy compute (Glue,
 SageMaker, Bedrock, EMR, Redshift) available in development only. Read-only
 in staging and production. Cross-account read on production data lake buckets.
 
@@ -190,16 +190,16 @@ Session tag `Access=xgov` enforced. Never staging or production.
 ```bash
 # ~/.aws/config
 [profile gds-aidr-admin-production] # ADMINS ONLY
-role_arn = arn:aws:iam::052997916327:role/gds-aidr-admin
+role_arn = arn:aws:iam::<PRODUCTION_ACCT>:role/gds-aidr-admin
 source_profile = gds-users
-mfa_serial = arn:aws:iam::622626885786:mfa/<your-username>
+mfa_serial = arn:aws:iam::<GDS_USERS_ACCT>:mfa/<your-username>
 duration_seconds = 14400
 region = eu-west-2
 
 [profile gds-aidr-readonly-development]
 role_arn = arn:aws:iam::444083008220:role/gds-aidr-readonly
 source_profile = gds-users
-mfa_serial = arn:aws:iam::622626885786:mfa/<your-username>
+mfa_serial = arn:aws:iam::<GDS_USERS_ACCT>:mfa/<your-username>
 duration_seconds = 14400
 region = eu-west-2
 ```
@@ -217,9 +217,9 @@ cp terraform.tfvars.example terraform.tfvars
 # Edit terraform.tfvars with your actual values
 
 eval $(aws sts assume-role \
-  --role-arn "arn:aws:iam::052997916327:role/gds-aidr-admin" \
+  --role-arn "arn:aws:iam::<PRODUCTION_ACCT>:role/gds-aidr-admin" \
   --role-session-name "TerraformSession" \
-  --serial-number "arn:aws:iam::622626885786:mfa/<your-username>" \
+  --serial-number "arn:aws:iam::<GDS_USERS_ACCT>:mfa/<your-username>" \
   --token-code <YOUR_MFA_CODE> \
   --profile gds-users \
   --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' \
@@ -275,7 +275,7 @@ The production data lake (`gds-aidr-datalake-*` buckets) is accessible
 read-only from development and staging via cross-account bucket policies.
 
 This gives all three environments access to the same data without
-mirroring storage. Development and staging roles have `s3:GetObject` and
+mirroring storage. development  and staging roles have `s3:GetObject` and
 `s3:ListBucket` on production data lake buckets, granted at both the role
 level (IAM policy) and the bucket level (S3 bucket policy). Both grants are
 required — AWS enforces the cross-account intersection.
@@ -324,7 +324,7 @@ Terraform (running as your production session) tries to assume
 `gds-aidr-terraform` in development, AWS sees the gds-users origin and
 allows it.
 
-If someone tried to assume `gds-aidr-terraform` in dev directly from a
+If someone tried to assume `gds-aidr-terraform` in development  directly from a
 production-only role (one that doesn't trace back to gds-users), it would
 be denied. This is what happened with the old `bootstrap` role — it was
 a production-local role with no gds-users lineage.
