@@ -2,7 +2,7 @@
 # GDS Data Innovation and AI Readiness Team Cloud Infrastructure Repository
 
 <!--date_created: mon-18-may-2026-->
-<!--date_updated: weds-27-may-2026-->
+<!--date_updated: fri-29-may-2026-->
 
 
 **Index**
@@ -10,7 +10,9 @@
  - [Get access to AIDR platform](#get-access-to-the-aidr-platform)
     *  [For developers and platform admins](#for-developers-and-platform-admins)
 
+> **Note:** to avoid confusion we will not use short forms of any of the environment names. Development and Production will be referred to as that in any code, variables, policies and documents, not *Dev* or *Prod*
 
+This is a **public repository**
 
 ---
 ## Repository Structure
