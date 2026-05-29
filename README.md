@@ -263,8 +263,7 @@ infrastructure/terraform/
         └── README.md
 ```
 
-For detailed architecture documentation, see
-`docs/infrastructure/iam-cross-account-strategy.md`.
+For detailed architecture documentation, see[`docs/infrastructure/iam-cross-account-strategy.md`.](docs/infrastructure/iam-cross-account-strategy.md)
 
 ---
 
