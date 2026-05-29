@@ -1,7 +1,7 @@
 # environments/production-iam/main.tf
 #
 # Centralised IAM management. This Terraform runs in the production account and
-# creates OIDC providers + IAM roles in all three accounts (development, staging, production).
+# creates OIDC providers + IAM roles in all three accounts (Development, Staging, Production).
 #
 # Why centralised: one state file, one place to see all roles, no drift
 # between environments. Changes to IAM go through a single PR.
@@ -45,18 +45,15 @@ provider "aws" {
 }
 
 # --------------------------------------------------------------------------
-# Provider: development (assumes into the development account)
+# Provider: Development (assumes into the Development account)
 # --------------------------------------------------------------------------
-# Uses the bootstrap role initially. Once the proper gds-aidr-terraform role
-# exists in development, update role_arn to point to that instead and delete the
-# bootstrap role.
 
 provider "aws" {
   alias  = "development"
   region = "eu-west-2"
 
   assume_role {
-    role_arn     = "arn:aws:iam::${var.development_account_id}:role/gds-aidr-terraform-bootstrap"
+    role_arn     = "arn:aws:iam::${var.development_account_id}:role/gds-aidr-terraform"
     session_name = "production-iam-terraform"
   }
 
@@ -71,7 +68,7 @@ provider "aws" {
 }
 
 # --------------------------------------------------------------------------
-# Provider: staging (assumes into the staging account)
+# Provider: Staging (assumes into the Staging account)
 # --------------------------------------------------------------------------
 
 provider "aws" {
@@ -79,7 +76,7 @@ provider "aws" {
   region = "eu-west-2"
 
   assume_role {
-    role_arn     = "arn:aws:iam::${var.staging_account_id}:role/gds-aidr-terraform-bootstrap"
+    role_arn     = "arn:aws:iam::${var.staging_account_id}:role/gds-aidr-terraform"
     session_name = "production-iam-terraform"
   }
 
@@ -94,10 +91,9 @@ provider "aws" {
 }
 
 # --------------------------------------------------------------------------
-# Module: IAM for development account
+# Module: IAM for Development account
 # --------------------------------------------------------------------------
-# Admin role enabled — this is the sandbox account. Your contractor developer
-# gets readonly access via the readonly role.
+# Admin role enabled — this is the `sandbox` account.
 
 module "iam_development" {
   source = "../../modules/iam-centralised"
@@ -128,7 +124,7 @@ module "iam_development" {
 }
 
 # --------------------------------------------------------------------------
-# Module: IAM for staging account
+# Module: IAM for Staging account
 # --------------------------------------------------------------------------
 # No admin role — staging is a pre-production mirror. Changes go through
 # Terraform only. Readonly for humans to verify deployments.
@@ -162,15 +158,15 @@ module "iam_staging" {
 }
 
 # --------------------------------------------------------------------------
-# Module: IAM for production account
+# Module: IAM for Production account
 # --------------------------------------------------------------------------
-# Admin role enabled but restricted to named users only (you + your LM).
+# Admin role enabled but restricted to named users only.
 # This is the most sensitive account.
 
 module "iam_production" {
   source = "../../modules/iam-centralised"
 
-  # No provider alias — uses the default (production) provider.
+  # No provider alias — uses the default ([Production) provider.
 
   role_prefix          = var.role_prefix
   trusted_account_arns = [var.gds_users_account_arn]
