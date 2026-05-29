@@ -7,7 +7,7 @@
 
 **Description:** Our account strategy is built in conjunction with GDS Engineering Enablement Cloud Platform Team and Secure by Design processes.
 
-> **See also:** `docs/infrastructure/iam-access-strategy.md` — the full access policy document covering role taxonomy, people-to-role mapping, environment access rules, external access, data architecture, auditing and the implementation roadmap. This document covers the cross-account technical mechanism; that document covers the access design.
+> **See also:** A full access policy document is currently in draft status covering role taxonomy, people-to-role mapping, environment access rules, external access, data architecture, auditing and the implementation roadmap. This document covers the cross-account technical mechanism; that document covers the access design.
 
 ---
 
@@ -197,7 +197,7 @@ duration_seconds = 14400
 region = eu-west-2
 
 [profile gds-aidr-readonly-development]
-role_arn = arn:aws:iam::444083008220:role/gds-aidr-readonly
+role_arn = arn:aws:iam::<DEVELOPMENT_ACCT>:role/gds-aidr-readonly
 source_profile = gds-users
 mfa_serial = arn:aws:iam::<GDS_USERS_ACCT>:mfa/<your-username>
 duration_seconds = 14400
